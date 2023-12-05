@@ -4,6 +4,7 @@ import glob
 import shutil
 import sys
 import base64
+import numpy as np
 
 import io
 
@@ -32,7 +33,7 @@ class CreateAsciiArt:
 
         character, line = "", []
         font = ImageFont.truetype(self.__FONT_PATH, self.__FONT_SIZE, encoding="utf-8")
-        input_pix = input_image.load()
+        input_pix = input_image.convert("L").load()
         output_image = Image.new("RGBA", (width, height), self.__FONT_BACKGROUND_COLOR)
         draw = ImageDraw.Draw(output_image)
 
@@ -45,6 +46,18 @@ class CreateAsciiArt:
         offset_x = int(round(margin_width / 2))
         offset_y = int(round(margin_height / 2))
 
+        character_map = (
+            ["#"] * 31
+            + ["k"] * 10
+            + ["p"] * 10
+            + ["e"] * 10
+            + ["o"] * 20
+            + ["j"] * 10
+            + ["l"] * 10
+            + ["i"] * 30
+            + [" "] * 125
+        )
+
         for row in range(self.__ROWS):
             for y in range(offset_y, int(original_height) - offset_y, font_height):
                 line = []
@@ -52,38 +65,8 @@ class CreateAsciiArt:
                     for x in range(
                         offset_x, int(original_width) - offset_x, font_width
                     ):
-                        pixel = input_pix[x - offset_x, y - offset_y]
-                        # ピクセルが整数（つまり、グレースケール）の場合
-                        if isinstance(pixel, int):
-                            gray = pixel
-                            "polikeiji"
-                        # ピクセルがタプル（つまり、カラー）の場合
-                        elif len(pixel) == 3:
-                            r, g, b = pixel
-                            gray = r * 0.2126 + g * 0.7152 + b * 0.0722
-                            "polikeiji"
-                        else:
-                            r, g, b, _ = pixel
-                            gray = r * 0.2126 + g * 0.7152 + b * 0.0722
-                            "polikeiji"
-                        if gray > 130:
-                            character = " "
-                        elif gray > 100:
-                            character = "i"
-                        elif gray > 90:
-                            character = "l"
-                        elif gray > 80:
-                            character = "j"
-                        elif gray > 60:
-                            character = "o"
-                        elif gray > 50:
-                            character = "e"
-                        elif gray > 40:
-                            character = "p"
-                        elif gray > 30:
-                            character = "k"
-                        else:
-                            character = "#"
+                        gray = input_pix[x - offset_x, y - offset_y]
+                        character = character_map[gray]
                         line.append(character)
                 draw.text(
                     (offset_x, y + row * original_height),
