@@ -20,6 +20,10 @@ fn create_ascii_art(path: &Path, py_app: String) -> PyResult<Vec<u8>> {
     })
 }
 
+fn main() -> std::io::Result<()> {
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
