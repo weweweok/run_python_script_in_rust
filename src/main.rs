@@ -4,7 +4,7 @@ use std::fs;
 use std::path::Path;
 
 fn create_ascii_art(path: &Path, py_app: String) -> PyResult<Vec<u8>> {
-    Python::with_gil(|py| -> PyResult<PyObject> {
+    Python::with_gil(|py| -> PyResult<Vec<u8>> {
         let syspath: &PyList = py.import("sys")?.getattr("path")?.downcast()?;
         syspath.insert(0, path.to_str())?;
         let module = PyModule::from_code(py, &py_app, "creategif.py", "")?;
@@ -17,13 +17,10 @@ fn create_ascii_art(path: &Path, py_app: String) -> PyResult<Vec<u8>> {
         let result_bytes: &PyBytes = result.extract()?;
 
         Ok(result_bytes.as_bytes().to_vec())
-    });
+    })
 }
 
 fn main() -> PyResult<()> {
-    let path = Path::new("./python_app");
-    let py_app = fs::read_to_string(path.join("creategif.py"))?;
-    let result_bytes = create_ascii_art(&path, py_app)?;
     Ok(())
 }
 
@@ -38,14 +35,15 @@ mod test {
             fs::remove_file("./python_app/ascii_art.gif").unwrap();
         }
         let path = Path::new("./python_app");
-        let py_app = fs::read_to_string(path.join("creategif.py"))?;
+        let py_app = fs::read_to_string(path.join("creategif.py")).unwrap();
         let resut_bytes = create_ascii_art(&path, py_app).unwrap();
         let mut file = fs::OpenOptions::new() // ファイルを開く or 作成 or 上書き
             .append(true) // ファイルがなければ作成
             .create(true)
             .write(true)
-            .open("./python_app/ascii_art.gif")?;
-        file.write_all(resut_bytes.as_bytes())?;
+            .open("./python_app/ascii_art.gif")
+            .unwrap();
+        file.write_all(resut_bytes.as_slice()).unwrap();
         assert_eq!(Path::new("./python_app/ascii_art.gif").exists(), true);
     }
 }
